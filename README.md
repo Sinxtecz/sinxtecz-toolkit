@@ -1,150 +1,73 @@
-# 𝙎𝙄𝙉𝙓𝙏𝙀𝘾𝙕 TOOLKIT
+# ☠ SINXTECZ TOOLKIT
 
-```text
-╭─「 𝙎𝙄𝙉𝙓𝙏𝙀𝘾𝙕 」
-╰─┤ CYBER TOOLKIT
-```
+A simple network toolkit for Windows and Linux. Run useful network commands from one menu. 🖥️
 
-A lightweight Python networking toolkit built for **learning, practice, and understanding networking tools from the command line.**
+## ⚡ What Can It Do?
 
-## ⚡ Features
+- 🔍 **Aggressive Scan** — Detect ports and services
+- 🎯 **SYN Scan** — Scan TCP ports
+- 📡 **Ping** — Check if a host responds
+- 🌐 **DNS Lookup** — Find domain information
+- 🔎 **WHOIS Lookup** — Check domain registration
+- 🛰️ **Traceroute** — Track the route to a host
+- 📍 **Private IP** — View local network information
+- 🌍 **Public IP** — Find your public IP address
 
-* 🔎 Aggressive Nmap Scan
-* 🛡️ SYN Scan
-* 📡 Ping
-* 🌐 DNS Lookup
-* 🛣️ Traceroute
-* 🖥️ Private IP Information
-* 🌍 Public IP Detection
-* 🪟 Windows + 🐧 Linux support
+## 🛠️ 1. Install the Requirements
 
----
+### 🪟 Windows
 
-## 🛠️ Requirements
-
-* Python 3
-* Nmap
-* cURL
-* DNS utilities
-* Traceroute utilities
-
-Python's `subprocess` and `platform` modules are built-in, so **no `pip install` is required.**
-
----
-
-## 🪟 Windows Setup
-
-### 1. Install Python
-
-Download Python 3 from:
-
-https://www.python.org/downloads/
-
-During installation, make sure:
-
-```text
-☑ Add Python to PATH
-```
-
-Check:
+Open **PowerShell** and run these commands one at a time:
 
 ```powershell
-python --version
+winget install --id Python.Python.3.13 -e
+winget install --id Insecure.Nmap -e
 ```
 
-### 2. Install Nmap
+For WHOIS, download Microsoft's official [Whois utility](https://learn.microsoft.com/en-us/sysinternals/downloads/whois).
 
-Download Nmap from:
+You may need to reopen PowerShell after installation.
 
-https://nmap.org/download.html
+### 🐉 Kali Linux / Debian / Ubuntu
 
-Check:
+Open your terminal and paste:
 
-```powershell
-nmap --version
+```bash
+sudo apt update
+sudo apt install python3 nmap whois curl traceroute
 ```
 
-### 3. cURL
+## 🚀 2. Run the Toolkit
 
-Modern Windows versions normally include cURL.
+Open a terminal inside the folder containing `multi_tool.py`.
 
-Check:
-
-```powershell
-curl --version
-```
-
-### 4. Run the toolkit
-
+**Windows:**
 ```powershell
 python multi_tool.py
 ```
 
----
-
-## 🐧 Linux Setup
-
-### Debian / Ubuntu / Kali
-
-```bash
-sudo apt update
-sudo apt install python3 nmap curl traceroute
-```
-
-Check:
-
-```bash
-python3 --version
-nmap --version
-curl --version
-traceroute --version
-```
-
-Run:
-
+**Linux:**
 ```bash
 python3 multi_tool.py
 ```
 
-### Arch Linux
+## 🎮 3. How to Use It
 
-```bash
-sudo pacman -S python nmap curl traceroute
-```
+1. Choose an option by entering its number.
+2. Enter the requested IP address or domain.
+3. Check the results.
+4. Press **ENTER** to return to the menu.
+5. Choose `0` to exit.
 
-Run:
+## ⚠️ Troubleshooting
 
-```bash
-python multi_tool.py
-```
+- **Python not found?** Install Python and enable **Add Python to PATH** on Windows.
+- **Nmap not found?** Install Nmap and reopen your terminal.
+- **WHOIS not working?** Make sure the WHOIS utility is installed and accessible.
+- **Traceroute not working on Windows?** Windows uses `tracert`; Linux uses `traceroute`.
 
----
+## 🔒 Responsible Use
 
-## 📂 Structure
+Only scan systems you own or have permission to test.
 
-```text
-SINXTECZ TOOLKIT
-│
-├── Scan
-│   ├── aggressive()
-│   ├── syn_scan()
-│   ├── ping()
-│   ├── dns()
-│   └── trace()
-│
-├── IP
-│   ├── private()
-│   └── public()
-│
-└── Menu
-```
-
-## 🎯 Purpose
-
-Built to practice **Python, networking, subprocesses, Linux/Windows commands, and cybersecurity fundamentals**.
-
-> ⚠️ Only scan systems and networks you own or have explicit permission to test.
-
-```text
-// crafted by 𝙎𝙄𝙉𝙓𝙏𝙀𝘾𝙕
-```
+**SINXTECZ — Learn. Build. Explore.**
