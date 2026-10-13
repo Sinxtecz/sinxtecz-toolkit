@@ -1,232 +1,345 @@
+
 import subprocess
 import platform
+import shutil
 
+
+# ==================== COLORS ====================
+
+RESET = "\033[0m"
+SILVER = "\033[38;2;195;202;212m"
+BRIGHT_SILVER = "\033[38;2;235;239;245m"
+CYAN = "\033[38;2;0;217;255m"
+GREEN = "\033[38;2;0;255;102m"
+RED = "\033[38;2;255;69;69m"
+YELLOW = "\033[38;2;255;209;102m"
+GRAY = "\033[38;2;181;181;181m"
+WHITE = "\033[38;2;255;255;255m"
+
+
+def info(message):
+    print(f"{GRAY}[*] {message}{RESET}")
+
+
+def success(message):
+    print(f"{GREEN}[+] {message}{RESET}")
+
+
+def error(message):
+    print(f"{RED}[-] {message}{RESET}")
+
+
+def warning(message):
+    print(f"{YELLOW}[!] {message}{RESET}")
+
+
+def prompt(message):
+    return input(f"{CYAN}{message}{RESET}").strip()
+
+
+def run_command(command, success_message):
+    try:
+        result = subprocess.run(command)
+
+        if result.returncode == 0:
+            success(success_message)
+        else:
+            error(
+                f"Command failed with exit code "
+                f"{result.returncode}."
+            )
+
+    except FileNotFoundError:
+        error(f"Command not found: {command[0]}")
+        info("Check that the tool is installed and available in PATH.")
+
+    except PermissionError:
+        error("Permission denied while running the command.")
+
+    except OSError as exception:
+        error(f"Could not run command: {exception}")
+
+
+# ==================== SCAN TOOLS ====================
 
 class Scan:
 
     def aggressive(self, ip):
-        print("\n[+] Starting aggressive scan...")
-        print("[+] Target:", ip)
+        info("Starting aggressive scan...")
+        info(f"Target: {ip}")
         print()
 
-        subprocess.run([
-            "nmap",
-            "-A",
-            "-T4",
-            ip
-        ])
-
-        print("\n[+] Aggressive scan completed")
+        run_command(
+            ["nmap", "-A", "-T4", ip],
+            "Aggressive scan completed."
+        )
 
     def syn_scan(self, ip):
-        print("\n[+] Starting SYN scan...")
-        print("[+] Target:", ip)
+        info("Starting SYN scan...")
+        info(f"Target: {ip}")
         print()
 
-        subprocess.run([
-            "nmap",
-            "-sS",
-            "-T3",
-            "--scan-delay",
-            "500ms",
-            ip
-        ])
-
-        print("\n[+] SYN scan completed")
+        run_command(
+            ["nmap", "-sS", "-T3", "--scan-delay", "500ms", ip],
+            "SYN scan completed."
+        )
 
     def ping(self, ip):
-        print("\n[+] Pinging:", ip)
+        info(f"Pinging {ip}...")
         print()
 
         if platform.system() == "Windows":
-            subprocess.run([
-                "ping",
-                "-n",
-                "4",
-                ip
-            ])
+            command = ["ping", "-n", "4", ip]
         else:
-            subprocess.run([
-                "ping",
-                "-c",
-                "4",
-                ip
-            ])
+            command = ["ping", "-c", "4", ip]
 
-        print("\n[+] Ping completed")
+        run_command(command, "Ping command completed.")
 
     def dns(self, webpage):
-        print("\n[+] Looking up:", webpage)
+        info(f"Looking up {webpage}...")
         print()
 
-        subprocess.run([
-            "nslookup",
-            webpage
-        ])
-
-        print("\n[+] DNS lookup completed")
+        run_command(
+            ["nslookup", webpage],
+            "DNS lookup completed."
+        )
 
     def trace(self, ip):
-        print("\n[+] Tracing route to:", ip)
+        info(f"Tracing route to {ip}...")
         print()
 
         if platform.system() == "Windows":
-            subprocess.run([
-                "tracert",
-                ip
-            ])
+            command = ["tracert", ip]
         else:
-            subprocess.run([
-                "traceroute",
-                ip
-            ])
+            command = ["traceroute", ip]
 
-        print("\n[+] Trace completed")
+        run_command(command, "Traceroute completed.")
 
+    def whois(self):
+        domain = prompt("[+] Enter domain or IP: ")
+
+        if not domain:
+            error("Domain cannot be empty.")
+            return
+
+        if platform.system() == "Windows":
+            command = (
+                shutil.which("whois.exe")
+                or shutil.which("whois")
+            )
+        else:
+            command = shutil.which("whois")
+
+        if command is None:
+            error("WHOIS is not installed or not in PATH.")
+
+            if platform.system() == "Windows":
+                info("Install Microsoft Sysinternals WHOIS.")
+                info("Add its folder to PATH.")
+            else:
+                info("Install using: sudo apt install whois")
+
+            return
+
+        info(f"Starting WHOIS lookup for {domain}...")
+        print()
+
+        try:
+            result = subprocess.run(
+                [command, domain],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            output = result.stdout or result.stderr
+
+            if output:
+                print(f"{WHITE}{output}{RESET}")
+
+            if result.returncode == 0:
+                success("WHOIS lookup completed.")
+            else:
+                error("WHOIS command returned an error.")
+
+        except subprocess.TimeoutExpired:
+            error("WHOIS request timed out.")
+
+        except (OSError, subprocess.SubprocessError) as exception:
+            error(f"WHOIS failed: {exception}")
+
+
+# ==================== IP TOOLS ====================
 
 class IP:
 
     def private(self):
-        print("\n[+] Getting private IP information...")
+        info("Getting private IP information...")
         print()
 
         if platform.system() == "Windows":
-            subprocess.run([
-                "ipconfig"
-            ])
+            command = ["ipconfig"]
         else:
-            subprocess.run([
-                "ip",
-                "addr"
-            ])
+            command = ["ip", "addr"]
 
-        print("\n[+] Private IP information displayed")
+        run_command(command, "Private IP information displayed.")
 
     def public(self):
-        print("\n[+] Getting public IP...")
+        info("Getting public IP...")
         print()
 
-        subprocess.run([
-            "curl",
-            "https://api.ipify.org"
-        ])
+        try:
+            result = subprocess.run(
+                [
+                    "curl",
+                    "--max-time", "15",
+                    "https://api.ipify.org"
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=20
+            )
 
-        print("\n[+] Public IP displayed")
+            public_ip = result.stdout.strip()
+
+            if public_ip:
+                print(f"{GREEN}[+] Public IP: {public_ip}{RESET}")
+            else:
+                error("The service returned an empty response.")
+
+        except subprocess.TimeoutExpired:
+            error("Public IP request timed out.")
+
+        except subprocess.CalledProcessError:
+            error("The public IP request failed.")
+
+        except FileNotFoundError:
+            error("curl is not installed or not available in PATH.")
+
+        except OSError as exception:
+            error(f"Could not retrieve public IP: {exception}")
 
 
-# Objects
+# ==================== OBJECTS ====================
+
 scan = Scan()
 ip = IP()
 
-
-# Internal developer marker
-# The value is intentionally not displayed anywhere.
 _signature = "\x53\x49\x4e\x58\x54\x45\x43\x5a"
 
 
-# Main program
+# ==================== MAIN PROGRAM ====================
+
+# Metallic silver-gray logo
+print(SILVER, end="", flush=True)
+
 print("""
-                                        ..oMMUP^
-                                     .odMMMMMM'
-                     _.u[[[/;;,.   .o@P^   MMM^
-                 .o8888uu[[[/;:--.         dP^
-               oN88888uu[[[/;:--.      .o@P^
-             dNMMNN888uu[[[/;:--.   .o@P^
-            MMMMMMMN888uu[[[/;:--.  o@P^
-            NNMMMMNN888uu[[[/~.o@P^
-            888888888uu[[[/o@P^--..
-          oI8888uu[[[/o@P^:--..
-      .@^  YUU[[[/o@P^;;:---..
-    OMP     ^/o@P^;;;:---..
-  .dMMM   .o@P^ ^;;:---...
- dMMMMMMM@^        ^^^^
-YMMMUP^
- ^^
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠖⠃⠀⠀⠀⡁⠀⠀⠀⠀⠀⠐⠆⠀⠀⠀⠀⠀⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡠⢔⡤⠊⠁⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⠀⠀⠁⠀⠀⠘⠁⢀⠀⠀⠀⠀⢈⠓⠂⠠⡄⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣶⠿⠞⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠒⠁⠀⠠⡚⠁⢀⣙⣀⣈⡩⠬⢁⠀⢑⠶⠤⡆⠤⡀⠀⠀⠀⠀⠀⠀⢀⠴⢲⣋⣽⣷⠟⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⢠⠀⠀⣶⠃⠗⣡⣶⣮⣿⡿⠿⠿⢿⣿⣷⣶⣤⣤⠤⠴⠦⠬⣤⣤⠄⣉⠉⠝⢲⣿⡷⠻⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠁⡀⡸⠁⣰⣿⡿⠛⠋⣁⡀⠤⠤⢄⡀⠈⠛⢯⣿⣟⣾⣶⣶⣮⣭⣵⣾⣿⣟⠿⠉⢨⠖⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⠀⢠⠳⡧⣻⡿⠋⢀⠒⠉⠀⠀⠀⠀⠀⠀⠉⠢⠀⠀⠙⠛⣻⣿⣿⣿⢿⣿⣿⠟⡱⠖⠊⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠀⠂⢃⣸⣿⠇⢠⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣴⣿⠟⢿⠁⠸⡿⣿⣯⡶⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⢘⡄⠘⣿⣿⠀⠸⡀⠀⠀⠀⠀⠀⢀⣀⣴⣾⣿⡿⡟⡋⠐⡇⠀⢸⣿⣿⠃⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢡⠘⢰⣿⡿⡆⠀⣇⠀⣀⣠⣤⣶⣿⢷⢟⠻⠀⠈⠀⠀⠀⡇⠀⣼⣿⣿⠂⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠔⢀⡴⢯⣾⠟⡏⢀⣠⣿⣿⣿⣟⢟⡋⠅⠘⠉⠀⠀⠀⠀⢀⠀⠁⢠⣿⣟⠃⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⠞⣻⣷⡿⢙⣩⣶⡿⠿⠛⠉⠑⢡⡁⠀⠀⠀⠀⠀⠀⢀⠔⠁⠀⣰⣿⣿⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣡⣾⣥⣾⢫⡦⠾⠛⠙⠉⠀⠀⢀⣀⠀⠈⠙⠓⠦⠤⠤⠀⠘⠁⢀⡤⣾⡿⠏⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠔⣴⣾⣿⣿⢟⢝⠢⠃⢀⣤⢴⣾⣮⣷⣶⢿⣶⡤⣐⡀⠀⣠⣤⢶⣪⣿⣿⡿⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⡀⣦⣾⡿⡛⠵⠺⢈⡠⠶⠿⠥⠥⡭⠉⠉⢱⡛⠻⠿⣿⣿⣿⣿⣿⠿⠿⠿⠟⠭⠛⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢀⢴⠕⣋⠝⠕⠐⠀⠔⠉⠀⠀⠀⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠁⠉⠁⠁⠁⠁⠈⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⢀⣠⠁⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 """)
+
+print(RESET, end="", flush=True)
+
+
+# ==================== MENU ====================
 
 while True:
 
-    print("""
+    print(f"""{CYAN}
 ╭─「 𝙎𝙄𝙉𝙓𝙏𝙀𝘾𝙕 𝙏𝙊𝙊𝙇𝙆𝙄𝙏 」
 │
 ├── Scan
-│   ├── [1] aggressive()
-│   ├── [2] syn_scan()
-│   ├── [3] ping()
-│   ├── [4] dns()
-│   └── [5] trace()
+│   ├── {GREEN}[1]{CYAN} Aggressive Scan
+│   ├── {GREEN}[2]{CYAN} SYN Scan
+│   ├── {GREEN}[3]{CYAN} Ping
+│   ├── {GREEN}[4]{CYAN} DNS Lookup
+│   ├── {GREEN}[5]{CYAN} WHOIS Lookup
+│   └── {GREEN}[6]{CYAN} Traceroute
 │
 ├── IP
-│   ├── [6] private()
-│   └── [7] public()
+│   ├── {GREEN}[7]{CYAN} Private IP
+│   └── {GREEN}[8]{CYAN} Public IP
 │
-└── Menu
-    └── [0] Exit
-""")
+└── {RED}[0]{CYAN} Exit
+{RESET}""")
 
-    choice = input("Snxtcz >> ").strip()
+    choice = prompt(">> ")
 
     if choice == "1":
-
-        target = input("[+] Enter target IP/domain: ").strip()
+        target = prompt("[+] Enter target IP/domain: ")
 
         if target:
             scan.aggressive(target)
         else:
-            print("[-] Target cannot be empty")
+            error("Target cannot be empty.")
 
     elif choice == "2":
-
-        target = input("[+] Enter target IP/domain: ").strip()
+        target = prompt("[+] Enter target IP/domain: ")
 
         if target:
             scan.syn_scan(target)
         else:
-            print("[-] Target cannot be empty")
+            error("Target cannot be empty.")
 
     elif choice == "3":
-
-        target = input("[+] Enter target IP/domain: ").strip()
+        target = prompt("[+] Enter target IP/domain: ")
 
         if target:
             scan.ping(target)
         else:
-            print("[-] Target cannot be empty")
+            error("Target cannot be empty.")
 
     elif choice == "4":
-
-        domain = input("[+] Enter domain: ").strip()
+        domain = prompt("[+] Enter domain: ")
 
         if domain:
             scan.dns(domain)
         else:
-            print("[-] Domain cannot be empty")
+            error("Domain cannot be empty.")
 
     elif choice == "5":
+        scan.whois()
 
-        target = input("[+] Enter target IP/domain: ").strip()
+    elif choice == "6":
+        target = prompt("[+] Enter target IP/domain: ")
 
         if target:
             scan.trace(target)
         else:
-            print("[-] Target cannot be empty")
-
-    elif choice == "6":
-
-        ip.private()
+            error("Target cannot be empty.")
 
     elif choice == "7":
+        ip.private()
 
+    elif choice == "8":
         ip.public()
 
     elif choice == "0":
-
-        print("\n[+] Exiting SINXTECZ TOOLKIT...")
+        success("Exiting SINXTECZ TOOLKIT...")
         break
 
     else:
+        error("Invalid option. Choose a number from 0 to 8.")
 
-        print("\n[-] Invalid option")
-
-    input("\nPress ENTER to return to menu...")
+    input(
+        f"\n{GRAY}Press ENTER to return to menu...{RESET}"
+    )
 
