@@ -1,73 +1,80 @@
-# ☠ SINXTECZ TOOLKIT
+# 𝙎𝙄𝙉𝙓𝙏𝙀𝘾𝙕 Toolkit
 
-A simple network toolkit for Windows and Linux. Run useful network commands from one menu. 🖥️
+A lightweight, cross-platform Python CLI toolkit for network diagnostics and basic security reconnaissance on Windows and Linux.
 
-## ⚡ What Can It Do?
+## Features
 
-- 🔍 **Aggressive Scan** — Detect ports and services
-- 🎯 **SYN Scan** — Scan TCP ports
-- 📡 **Ping** — Check if a host responds
-- 🌐 **DNS Lookup** — Find domain information
-- 🔎 **WHOIS Lookup** — Check domain registration
-- 🛰️ **Traceroute** — Track the route to a host
-- 📍 **Private IP** — View local network information
-- 🌍 **Public IP** — Find your public IP address
+### `main.py` — Core Functions
+- **Nmap Scanning:** Aggressive and other supported network scans.
+- **Ping:** Test network connectivity.
+- **DNS Lookup:** Retrieve DNS information.
+- **WHOIS Lookup:** Retrieve domain registration details.
+- **IP Information:** Display local and public IP information.
+- **Dependency Checker:** Check required external utilities.
+- **Cross-Platform Support:** Use OS-specific commands.
+- **Error Handling:** Handle missing tools, permissions, and execution errors.
 
-## 🛠️ 1. Install the Requirements
+### `ui.py` — Terminal Interface
+- Colored terminal output and consistent styling.
+- Informational, success, warning, and error messages where implemented.
+- User prompts and readable command feedback.
+- Reusable UI functions for a consistent SINXTECZ experience.
 
-### 🪟 Windows
+## Project Structure
 
-Open **PowerShell** and run these commands one at a time:
-
-```powershell
-winget install --id Python.Python.3.13 -e
-winget install --id Insecure.Nmap -e
+```text
+SINXTECZ-Toolkit/
+├── main.py
+├── ui.py
+└── README.md
 ```
 
-For WHOIS, download Microsoft's official [Whois utility](https://learn.microsoft.com/en-us/sysinternals/downloads/whois).
+## Requirements
+- Python 3.10 or newer recommended.
+- Windows or Linux.
+- Required utilities, depending on enabled features: Nmap, WHOIS, cURL, and system networking commands.
 
-You may need to reopen PowerShell after installation.
+## Installation & Usage
 
-### 🐉 Kali Linux / Debian / Ubuntu
-
-Open your terminal and paste:
+1. Install Python and the required utilities.
+2. Download or clone the repository.
+3. Open the project directory.
+4. Run:
 
 ```bash
-sudo apt update
-sudo apt install python3 nmap whois curl traceroute
+python main.py
 ```
 
-## 🚀 2. Run the Toolkit
+On Linux, you may need:
 
-Open a terminal inside the folder containing `multi_tool.py`.
-
-**Windows:**
-```powershell
-python multi_tool.py
-```
-
-**Linux:**
 ```bash
-python3 multi_tool.py
+python3 main.py
 ```
 
-## 🎮 3. How to Use It
+Follow the terminal menu to select an operation.
 
-1. Choose an option by entering its number.
-2. Enter the requested IP address or domain.
-3. Check the results.
-4. Press **ENTER** to return to the menu.
-5. Choose `0` to exit.
+## Compatibility
+- **Windows:** Supported with required utilities installed.
+- **Linux:** Supported with required utilities installed.
+- **Termux:** Potentially compatible; command availability may vary.
 
-## ⚠️ Troubleshooting
+## Security & Responsible Use
+- Test only systems you own or have explicit permission to assess.
+- Some scans, especially SYN scans, may require administrator or root privileges.
+- Use aggressive scans responsibly and follow applicable laws and network policies.
 
-- **Python not found?** Install Python and enable **Add Python to PATH** on Windows.
-- **Nmap not found?** Install Nmap and reopen your terminal.
-- **WHOIS not working?** Make sure the WHOIS utility is installed and accessible.
-- **Traceroute not working on Windows?** Windows uses `tracert`; Linux uses `traceroute`.
+## Troubleshooting
+- **Command not found:** Install the required utility and verify your PATH.
+- **Permission denied:** Check the operation's privilege requirements.
+- **Import error:** Ensure `main.py` and `ui.py` are in the correct directory.
+- **Color issues:** Use a terminal with ANSI color support.
 
-## 🔒 Responsible Use
+## Project Scope
+This README documents only `main.py` (core operations) and `ui.py` (terminal interface). Additional modules and optional features are outside its scope.
 
-Only scan systems you own or have permission to test.
+## Author
+**SINXTECZ**
 
-**SINXTECZ — Learn. Build. Explore.**
+A cybersecurity learning and Python development project focused on networking, command-line tools, and practical security skills.
+
+*Built for learning. Designed for practical use. Developed with Python.*
